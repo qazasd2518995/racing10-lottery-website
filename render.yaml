@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: racing10-lottery-website
+    runtime: node
+    plan: free
+    region: oregon
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DB_HOST
+        value: dpg-d0e2imc9c44c73che3kg-a.oregon-postgres.render.com
+      - key: DB_PORT
+        value: 5432
+      - key: DB_NAME
+        value: bet_game
+      - key: DB_USER
+        value: bet_game_user
+      - key: DB_PASSWORD
+        value: Vm4J5g1gymwPfBNcgYfGCe4GEZqCjoIy
+      - key: NEXT_PUBLIC_API_URL
+        generateValue: true
+    healthCheckPath: /api/game-state
+    autoDeploy: true 
