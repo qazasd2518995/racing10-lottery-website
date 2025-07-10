@@ -1,6 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone',
   poweredByHeader: false,
   compress: true,
   eslint: {
@@ -10,7 +9,6 @@ const nextConfig = {
     ignoreBuildErrors: false,
   },
   // Optimize for production
-  swcMinify: true,
   reactStrictMode: true,
 }
 

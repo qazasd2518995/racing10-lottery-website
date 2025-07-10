@@ -25,6 +25,16 @@ export function getPool(): Pool {
     pool.on('error', (err) => {
       console.error('Unexpected error on idle client', err);
     });
+    
+    // Test connection on startup
+    pool.connect((err, client, done) => {
+      if (err) {
+        console.error('Error connecting to database:', err);
+      } else {
+        console.log('Database connected successfully');
+        if (client) done();
+      }
+    });
   }
   
   return pool;
