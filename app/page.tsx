@@ -3,6 +3,15 @@
 import React, { useState, useEffect } from 'react';
 import CountdownTimer from '@/components/countdown-timer';
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+
+// 配置 dayjs 時區插件
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
+// 設定台北時區
+const TAIPEI_TIMEZONE = 'Asia/Taipei';
 
 interface DrawResult {
   issue: string;
@@ -24,7 +33,7 @@ export default function Racing10Page() {
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [latestDraw, setLatestDraw] = useState<DrawResult | null>(null);
   const [drawHistory, setDrawHistory] = useState<DrawResult[]>([]);
-  const [selectedDate, setSelectedDate] = useState(dayjs().format('YYYY-MM-DD'));
+  const [selectedDate, setSelectedDate] = useState(dayjs().tz(TAIPEI_TIMEZONE).format('YYYY-MM-DD'));
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -175,15 +184,6 @@ export default function Racing10Page() {
             </div>
           </div>
         </div>
-
-        <nav className="flex space-x-8">
-          <div className="text-white hover:text-cyan-300 cursor-pointer font-medium">
-            Winning numbers ▼
-          </div>
-          <div className="text-white hover:text-cyan-300 cursor-pointer font-medium">
-            About us
-          </div>
-        </nav>
       </header>
 
       {/* Racing10 Banner */}

@@ -1,6 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getLatestDrawRecords } from '@/lib/database';
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+
+// 配置 dayjs 時區插件
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
+// 設定台北時區
+const TAIPEI_TIMEZONE = 'Asia/Taipei';
 
 export async function GET(request: NextRequest) {
   try {
@@ -21,7 +30,7 @@ export async function GET(request: NextRequest) {
       success: true,
       data: {
         issue: latest.period,
-        date: dayjs(latest.draw_time).format('YYYY-MM-DD HH:mm:ss'),
+        date: dayjs(latest.draw_time).tz(TAIPEI_TIMEZONE).format('YYYY-MM-DD HH:mm:ss'),
         numbers: latest.result,
         timestamp: latest.draw_time.getTime()
       }
