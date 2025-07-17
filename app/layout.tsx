@@ -15,9 +15,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Racing10 Lottery - Official Draw Results",
-  description: "Check the latest Racing10 lottery draw results and winning numbers online. Live countdown timer and historical results.",
-  keywords: "Racing10, lottery, draw results, winning numbers, online lottery",
+  title: "FS Racing - Official Draw Results",
+  description: "Check the latest FS Racing lottery draw results and winning numbers online. Live countdown timer and historical results. Available 24/7.",
+  keywords: "FS Racing, lottery, draw results, winning numbers, online lottery, 24/7",
 };
 
 export default function RootLayout({

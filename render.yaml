@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: racing10-lottery
+    name: fs-racing-lottery
     env: node
     runtime: node
     buildCommand: npm install && npm run build

@@ -192,9 +192,9 @@ export default function Racing10Page() {
         </div>
       </header>
 
-      {/* Racing10 Banner */}
+      {/* FS Racing Banner */}
       <section className="bg-gradient-to-r from-yellow-400 to-yellow-500 py-16 text-center">
-        <h1 className="text-6xl font-bold text-purple-800">RACING<span className="text-blue-800">10</span></h1>
+        <h1 className="text-6xl font-bold text-purple-800">FS <span className="text-blue-800">RACING</span></h1>
       </section>
 
       {/* Current Winning Numbers */}
@@ -366,7 +366,7 @@ export default function Racing10Page() {
             <div>
               <h2 className="text-3xl font-bold mb-2">Don&apos;t Waste Your Time! Win Today!</h2>
               <h3 className="text-xl text-cyan-300 mb-4">When To Play</h3>
-              <p className="text-lg">Every day from 7 a.m. to 6 p.m</p>
+              <p className="text-lg">24/7 - Play Anytime!</p>
             </div>
           </div>
         </div>
@@ -374,7 +374,7 @@ export default function Racing10Page() {
 
       {/* Copyright */}
       <div className="bg-gray-800 py-4 text-center text-gray-400 text-sm">
-        Online Lottery All rights reserved.
+        FS Racing All rights reserved.
       </div>
     </div>
   );
