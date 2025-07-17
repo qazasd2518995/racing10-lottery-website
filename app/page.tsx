@@ -76,7 +76,9 @@ export default function Racing10Page() {
   // Fetch draw history
   const fetchDrawHistory = async (date?: string) => {
     try {
-      const url = date ? `/api/draw-history?date=${date}` : '/api/draw-history?limit=10';
+      // If no date is provided, use today's date (selectedDate)
+      const dateToFetch = date || selectedDate;
+      const url = `/api/draw-history?date=${dateToFetch}`;
       const response = await fetch(url);
       const data = await response.json();
       

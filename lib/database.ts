@@ -1,4 +1,11 @@
 import { Pool } from 'pg';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+
+// Configure dayjs for timezone handling
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 // Database configuration
 const dbConfig = {
@@ -123,14 +130,17 @@ export async function getLatestDrawRecords(limit = 10): Promise<DrawRecord[]> {
 export async function getDrawRecordsByDate(date: string): Promise<DrawRecord[]> {
   const pool = getPool();
   try {
-    const startDate = new Date(date);
-    const endDate = new Date(date);
-    endDate.setDate(endDate.getDate() + 1);
+    // Use dayjs to properly handle timezone
+    const startDate = dayjs.tz(date, 'Asia/Taipei').startOf('day').toDate();
+    const endDate = dayjs.tz(date, 'Asia/Taipei').endOf('day').toDate();
+    
+    console.log(`Fetching records for date: ${date}`);
+    console.log(`Start: ${startDate.toISOString()}, End: ${endDate.toISOString()}`);
     
     const result = await pool.query(`
       SELECT period, result, draw_time, created_at, block_height, block_hash
       FROM draw_records 
-      WHERE draw_time >= $1 AND draw_time < $2
+      WHERE draw_time >= $1 AND draw_time <= $2
       ORDER BY draw_time DESC
     `, [startDate, endDate]);
     
