@@ -6,11 +6,11 @@ import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 
-// 配置 dayjs 時區插件
+// Configure dayjs timezone plugin
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-// 設定台北時區
+// Set Taipei timezone
 const TAIPEI_TIMEZONE = 'Asia/Taipei';
 
 interface DrawResult {
@@ -18,6 +18,8 @@ interface DrawResult {
   date: string;
   numbers: number[];
   timestamp: number;
+  block_height?: string;
+  block_hash?: string;
 }
 
 interface GameState {
@@ -27,6 +29,8 @@ interface GameState {
   status: string;
   server_time: string;
   next_draw_time: string;
+  current_block_height?: string;
+  current_block_hash?: string;
 }
 
 export default function Racing10Page() {
@@ -199,6 +203,21 @@ export default function Racing10Page() {
               <h2 className="text-lg font-semibold">
                 WINNING NUMBERS: {latestDraw?.issue || 'Loading...'}, {latestDraw?.date || ''}
               </h2>
+              {latestDraw?.block_height && (
+                <div className="mt-2 text-sm opacity-90">
+                  <span className="inline-flex items-center">
+                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                    Block Height: {latestDraw.block_height}
+                  </span>
+                  {latestDraw.block_hash && (
+                    <span className="ml-4 text-xs opacity-75" title={latestDraw.block_hash}>
+                      Hash: {latestDraw.block_hash.substring(0, 8)}...
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
             <div className="text-right">
               <div className="text-sm mb-1">Next Lottery Draw :</div>
@@ -207,6 +226,11 @@ export default function Racing10Page() {
                   initialSeconds={gameState.countdown_seconds}
                   onComplete={handleCountdownComplete}
                 />
+              )}
+              {gameState?.current_block_height && (
+                <div className="text-xs mt-2 opacity-75">
+                  Current Block: {gameState.current_block_height}
+                </div>
               )}
             </div>
           </div>
@@ -218,6 +242,24 @@ export default function Racing10Page() {
                 {number.toString().padStart(2, '0')}
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Blockchain Security Notice */}
+      <section className="bg-green-50 py-6 px-4 border-t border-b border-green-200">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex items-center">
+            <svg className="w-8 h-8 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+            <div>
+              <h3 className="text-lg font-semibold text-green-800 mb-1">Blockchain Verification</h3>
+              <p className="text-green-700 text-sm">
+                Every draw result is recorded on the blockchain with block height and hash values ensuring results cannot be tampered with.
+                You can verify the authenticity and fairness of each draw through the block height.
+              </p>
+            </div>
           </div>
         </div>
       </section>
@@ -257,6 +299,7 @@ export default function Racing10Page() {
                     <th className="border p-3 text-left text-blue-600 font-semibold">ISSUE NO</th>
                     <th className="border p-3 text-left text-blue-600 font-semibold">DATE</th>
                     <th className="border p-3 text-left text-blue-600 font-semibold">WINNING NUMBERS</th>
+                    <th className="border p-3 text-left text-blue-600 font-semibold">BLOCK HEIGHT</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -272,6 +315,23 @@ export default function Racing10Page() {
                             </span>
                           ))}
                         </div>
+                      </td>
+                      <td className="border p-3 text-gray-600">
+                        {result.block_height ? (
+                          <div className="flex items-center">
+                            <svg className="w-4 h-4 mr-1 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                            </svg>
+                            <span className="font-mono text-sm">{result.block_height}</span>
+                            {result.block_hash && (
+                              <span className="ml-2 text-xs text-gray-500" title={result.block_hash}>
+                                ({result.block_hash.substring(0, 6)}...)
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-gray-400 text-sm">-</span>
+                        )}
                       </td>
                     </tr>
                   ))}

@@ -4,11 +4,11 @@ import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 
-// 配置 dayjs 時區插件
+// Configure dayjs timezone plugin
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-// 設定台北時區
+// Set Taipei timezone
 const TAIPEI_TIMEZONE = 'Asia/Taipei';
 
 export async function GET(request: NextRequest) {
@@ -34,7 +34,9 @@ export async function GET(request: NextRequest) {
       issue: record.period,
       date: dayjs(record.draw_time).tz(TAIPEI_TIMEZONE).format('YYYY-MM-DD HH:mm:ss'),
       numbers: record.result,
-      timestamp: record.draw_time.getTime()
+      timestamp: record.draw_time.getTime(),
+      block_height: record.block_height,
+      block_hash: record.block_hash
     }));
     
     return NextResponse.json({

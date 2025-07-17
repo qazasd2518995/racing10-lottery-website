@@ -26,7 +26,9 @@ export async function GET(request: NextRequest) {
         last_result: gameState.last_result,
         status: gameState.status,
         server_time: now.toISOString(),
-        next_draw_time: new Date(now.getTime() + (timeRemaining * 1000)).toISOString()
+        next_draw_time: new Date(now.getTime() + (timeRemaining * 1000)).toISOString(),
+        current_block_height: gameState.current_block_height,
+        current_block_hash: gameState.current_block_hash
       }
     });
     
