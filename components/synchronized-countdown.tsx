@@ -2,16 +2,14 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 
-interface GameState {
-  current_period: string;
-  countdown_seconds: number;
-  status: 'betting' | 'drawing';
-  server_time: string;
-  next_draw_time: string;
-}
-
 interface SynchronizedCountdownProps {
-  gameState: GameState | null;
+  gameState: {
+    current_period: string;
+    countdown_seconds: number;
+    status: string;
+    server_time: string;
+    next_draw_time: string;
+  } | null;
   onStatusChange?: (status: 'betting' | 'drawing') => void;
 }
 
@@ -67,8 +65,8 @@ export default function SynchronizedCountdown({
       // 檢查狀態變化
       if (gameState && seconds === 0 && gameState.status !== lastStatusRef.current) {
         lastStatusRef.current = gameState.status;
-        if (onStatusChange) {
-          onStatusChange(gameState.status);
+        if (onStatusChange && (gameState.status === 'betting' || gameState.status === 'drawing')) {
+          onStatusChange(gameState.status as 'betting' | 'drawing');
         }
       }
     }, 100);
