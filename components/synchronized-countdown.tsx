@@ -19,8 +19,10 @@ export default function SynchronizedCountdown({
 }: SynchronizedCountdownProps) {
   const [countdown, setCountdown] = useState(0);
   const [serverTimeOffset, setServerTimeOffset] = useState(0);
+  const [localCountdown, setLocalCountdown] = useState(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const lastStatusRef = useRef<string>('');
+  const lastPeriodRef = useRef<string>('');
 
   // 同步服務器時間
   useEffect(() => {
@@ -34,17 +36,28 @@ export default function SynchronizedCountdown({
     }
   }, [gameState?.server_time]);
 
+  // 當期號變化時，重置本地倒數
+  useEffect(() => {
+    if (gameState && gameState.current_period !== lastPeriodRef.current) {
+      lastPeriodRef.current = gameState.current_period;
+      setLocalCountdown(gameState.countdown_seconds || 0);
+    }
+  }, [gameState?.current_period, gameState?.countdown_seconds]);
+
   // 計算倒數
   const calculateCountdown = () => {
-    if (!gameState || !gameState.next_draw_time) {
-      return gameState?.countdown_seconds || 0;
-    }
-
-    const correctedNow = Date.now() + serverTimeOffset;
-    const nextDrawTimestamp = new Date(gameState.next_draw_time).getTime();
-    const remainingMs = nextDrawTimestamp - correctedNow;
+    if (!gameState) return 0;
     
-    return Math.max(0, Math.floor(remainingMs / 1000));
+    // 如果有 next_draw_time 和 server_time，使用精確計算
+    if (gameState.next_draw_time && gameState.server_time) {
+      const correctedNow = Date.now() + serverTimeOffset;
+      const nextDrawTimestamp = new Date(gameState.next_draw_time).getTime();
+      const remainingMs = nextDrawTimestamp - correctedNow;
+      return Math.max(0, Math.floor(remainingMs / 1000));
+    }
+    
+    // 否則直接使用 countdown_seconds
+    return Math.max(0, gameState.countdown_seconds || 0);
   };
 
   // 啟動倒數計時器
@@ -53,30 +66,47 @@ export default function SynchronizedCountdown({
       clearInterval(intervalRef.current);
     }
 
-    // 立即更新一次
-    const newCountdown = calculateCountdown();
-    setCountdown(newCountdown);
+    if (!gameState) return;
 
-    // 每100ms更新一次，確保精確
+    // 初始設置倒數
+    if (gameState.next_draw_time && gameState.server_time) {
+      setCountdown(calculateCountdown());
+    } else {
+      setCountdown(localCountdown);
+    }
+
+    // 每秒更新一次
     intervalRef.current = setInterval(() => {
-      const seconds = calculateCountdown();
-      setCountdown(seconds);
-
-      // 檢查狀態變化
-      if (gameState && seconds === 0 && gameState.status !== lastStatusRef.current) {
-        lastStatusRef.current = gameState.status;
-        if (onStatusChange && (gameState.status === 'betting' || gameState.status === 'drawing')) {
-          onStatusChange(gameState.status as 'betting' | 'drawing');
+      // 如果有精確的服務器時間，使用計算方式
+      if (gameState.next_draw_time && gameState.server_time) {
+        const seconds = calculateCountdown();
+        setCountdown(seconds);
+        
+        if (seconds === 0 && onStatusChange) {
+          onStatusChange('drawing');
         }
+      } else {
+        // 否則使用本地倒數
+        setLocalCountdown(prev => {
+          const newValue = Math.max(0, prev - 1);
+          setCountdown(newValue);
+          
+          // 當倒數到 0 時，觸發狀態變更
+          if (newValue === 0 && gameState.status === 'betting' && onStatusChange) {
+            onStatusChange('drawing');
+          }
+          
+          return newValue;
+        });
       }
-    }, 100);
+    }, 1000);
 
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
     };
-  }, [gameState, serverTimeOffset]);
+  }, [gameState, serverTimeOffset]); // 移除 localCountdown 依賴以避免重複觸發
 
   const formatTime = (totalSeconds: number): string => {
     const mins = Math.floor(totalSeconds / 60);

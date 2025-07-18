@@ -4,8 +4,8 @@ import { getCurrentGameState } from '@/lib/database';
 // Try multiple possible game API URLs
 const GAME_API_URLS = [
   process.env.GAME_API_URL,
+  'https://bet-game-vcje.onrender.com',
   'https://fsracing-b8d4.onrender.com',
-  'https://racing10-c9ee.onrender.com',
   'http://localhost:3000'
 ].filter(Boolean);
 
