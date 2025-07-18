@@ -43,9 +43,9 @@ const nextConfig = {
       },
     ];
   },
-  // Experimental features for better chunk loading
+  // Disable experimental CSS optimization to avoid critters dependency
   experimental: {
-    optimizeCss: true,
+    optimizeCss: false,
   },
 }
 
