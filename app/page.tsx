@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import SynchronizedCountdown from '@/components/synchronized-countdown-v2';
-import DebugCountdown from '@/components/debug-countdown';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
@@ -303,15 +302,10 @@ export default function Racing10Page() {
             <div className="text-right">
               <div className="text-sm mb-1">Next Lottery Draw :</div>
               {gameState && (
-                <>
-                  <SynchronizedCountdown 
-                    gameState={gameState}
-                    onStatusChange={() => handleCountdownComplete()}
-                  />
-                  <div className="mt-4">
-                    <DebugCountdown gameState={gameState} />
-                  </div>
-                </>
+                <SynchronizedCountdown 
+                  gameState={gameState}
+                  onStatusChange={() => handleCountdownComplete()}
+                />
               )}
               {gameState?.current_block_height && (
                 <div className="text-xs mt-2 opacity-75">
