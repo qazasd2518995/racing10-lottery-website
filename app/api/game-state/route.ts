@@ -1,31 +1,90 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getCurrentGameState } from '@/lib/database';
 
-const GAME_API_URL = process.env.GAME_API_URL || 'https://racing10-c9ee.onrender.com';
+// Try multiple possible game API URLs
+const GAME_API_URLS = [
+  process.env.GAME_API_URL,
+  'https://fsracing-b8d4.onrender.com',
+  'https://racing10-c9ee.onrender.com',
+  'http://localhost:3000'
+].filter(Boolean);
 
-export async function GET(request: NextRequest) {
+async function fetchFromGameAPI(url: string): Promise<any> {
   try {
-    console.log('Fetching current game state from main game API...');
-    
-    // Fetch from main game API
-    const response = await fetch(`${GAME_API_URL}/api/game-data`, {
+    const response = await fetch(`${url}/api/game-data`, {
       headers: {
         'Content-Type': 'application/json',
       },
-      // Disable caching to always get fresh data
-      cache: 'no-store'
+      cache: 'no-store',
+      // Add timeout
+      signal: AbortSignal.timeout(5000)
     });
 
     if (!response.ok) {
-      throw new Error(`Game API responded with status: ${response.status}`);
+      throw new Error(`Status: ${response.status}`);
     }
 
-    const data = await response.json();
+    return await response.json();
+  } catch (error) {
+    console.error(`Failed to fetch from ${url}:`, error);
+    throw error;
+  }
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    console.log('Attempting to fetch game state...');
     
-    if (!data.gameData) {
+    // Try each API URL in order
+    let data = null;
+    let lastError = null;
+    
+    for (const url of GAME_API_URLS) {
+      if (!url) continue;
+      
+      console.log(`Trying API: ${url}`);
+      try {
+        data = await fetchFromGameAPI(url);
+        if (data && data.gameData) {
+          console.log(`Successfully fetched from: ${url}`);
+          break;
+        }
+      } catch (error) {
+        lastError = error;
+        continue;
+      }
+    }
+    
+    // If all external APIs fail, fall back to local database
+    if (!data || !data.gameData) {
+      console.log('All external APIs failed, falling back to local database...');
+      
+      const gameState = await getCurrentGameState();
+      
+      if (!gameState) {
+        return NextResponse.json({
+          success: false,
+          message: 'No game state available'
+        }, { status: 404 });
+      }
+
+      // Return local data in expected format
+      const now = new Date();
+      const timeRemaining = Math.max(0, gameState.countdown_seconds);
+      
       return NextResponse.json({
-        success: false,
-        message: 'No game state found'
-      }, { status: 404 });
+        success: true,
+        data: {
+          current_period: gameState.current_period,
+          countdown_seconds: timeRemaining,
+          last_result: gameState.last_result,
+          status: gameState.status,
+          server_time: now.toISOString(),
+          next_draw_time: new Date(now.getTime() + (timeRemaining * 1000)).toISOString(),
+          current_block_height: gameState.current_block_height,
+          current_block_hash: gameState.current_block_hash
+        }
+      });
     }
 
     // Transform the response to match our format
