@@ -96,32 +96,58 @@ export default function SynchronizedCountdown({
   };
 
   const isDrawing = gameState?.status === 'drawing';
+  const isBetting = gameState?.status === 'betting';
+
+  // Get status text based on game state
+  const getStatusText = () => {
+    if (isDrawing) {
+      return 'Drawing in progress';
+    }
+    if (isBetting) {
+      if (countdown <= 0) {
+        return 'Betting closed';
+      }
+      if (countdown <= 10) {
+        return 'Betting closing soon!';
+      }
+      return 'Betting open';
+    }
+    return 'Preparing...';
+  };
+
+  // Get timer display text
+  const getTimerDisplay = () => {
+    if (isDrawing) {
+      return formatTime(countdown);
+    }
+    return formatTime(countdown);
+  };
 
   return (
     <div className="flex flex-col items-center">
       <div className={`countdown-timer ${getTimerColor()} ${getTimerSize()} transition-all duration-300`}>
-        {formatTime(countdown)}
+        {getTimerDisplay()}
       </div>
       
       {/* Progress bar */}
       <div className="w-24 h-1 bg-gray-600 rounded-full mt-2 overflow-hidden">
         <div 
           className={`h-full transition-all duration-1000 ease-linear ${
+            isDrawing ? 'bg-purple-400' :
             countdown <= 10 ? 'bg-red-400' : 
             countdown <= 30 ? 'bg-yellow-400' : 'bg-green-400'
           }`}
           style={{ 
-            width: `${Math.max(0, (countdown / 60) * 100)}%` 
+            width: isDrawing 
+              ? `${Math.max(0, (countdown / 15) * 100)}%`
+              : `${Math.max(0, (countdown / 60) * 100)}%` 
           }}
         />
       </div>
       
       {/* Status indicator */}
       <div className="text-xs mt-1 text-gray-300">
-        {isDrawing ? 'Drawing...' : 
-         countdown <= 0 ? 'Preparing...' :
-         countdown <= 10 ? 'Final seconds!' : 
-         'Next draw in'}
+        {getStatusText()}
       </div>
     </div>
   );

@@ -1,34 +1,45 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getCurrentGameState } from '@/lib/database';
+
+const GAME_API_URL = process.env.GAME_API_URL || 'https://racing10-c9ee.onrender.com';
 
 export async function GET(request: NextRequest) {
   try {
-    console.log('Fetching current game state...');
+    console.log('Fetching current game state from main game API...');
     
-    const gameState = await getCurrentGameState();
+    // Fetch from main game API
+    const response = await fetch(`${GAME_API_URL}/api/game-data`, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      // Disable caching to always get fresh data
+      cache: 'no-store'
+    });
+
+    if (!response.ok) {
+      throw new Error(`Game API responded with status: ${response.status}`);
+    }
+
+    const data = await response.json();
     
-    if (!gameState) {
+    if (!data.gameData) {
       return NextResponse.json({
         success: false,
         message: 'No game state found'
       }, { status: 404 });
     }
 
-    // Convert the countdown to actual time based on server time
-    const now = new Date();
-    const timeRemaining = Math.max(0, gameState.countdown_seconds);
-    
+    // Transform the response to match our format
     return NextResponse.json({
       success: true,
       data: {
-        current_period: gameState.current_period,
-        countdown_seconds: timeRemaining,
-        last_result: gameState.last_result,
-        status: gameState.status,
-        server_time: now.toISOString(),
-        next_draw_time: new Date(now.getTime() + (timeRemaining * 1000)).toISOString(),
-        current_block_height: gameState.current_block_height,
-        current_block_hash: gameState.current_block_hash
+        current_period: data.gameData.currentPeriod,
+        countdown_seconds: data.gameData.countdownSeconds,
+        last_result: data.gameData.lastResult,
+        status: data.gameData.status,
+        server_time: data.gameData.serverTime || new Date().toISOString(),
+        next_draw_time: data.gameData.nextDrawTime || new Date(Date.now() + (data.gameData.countdownSeconds * 1000)).toISOString(),
+        current_block_height: null,
+        current_block_hash: null
       }
     });
     
