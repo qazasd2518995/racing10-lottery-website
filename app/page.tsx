@@ -41,6 +41,7 @@ export default function Racing10Page() {
   const [selectedDate, setSelectedDate] = useState(dayjs().tz(TAIPEI_TIMEZONE).format('YYYY-MM-DD'));
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [stuckCountdownCounter, setStuckCountdownCounter] = useState(0);
 
   // Fetch game state
   const fetchGameState = async () => {
@@ -119,29 +120,59 @@ export default function Racing10Page() {
 
   // Auto-refresh game state with adaptive timing
   useEffect(() => {
-    // Use faster refresh rate when countdown is low
-    const refreshInterval = gameState && gameState.countdown_seconds <= 5 ? 1000 : 3000;
+    // Use faster refresh rate when countdown is low or at zero
+    const refreshInterval = gameState && (gameState.countdown_seconds <= 5 || gameState.countdown_seconds === 0) ? 1000 : 3000;
     
     const interval = setInterval(() => {
       fetchGameState();
       
+      // Detect stuck countdown
+      if (gameState && gameState.countdown_seconds === 0 && gameState.status === 'betting') {
+        setStuckCountdownCounter(prev => prev + 1);
+        console.log(`Countdown stuck at 0, counter: ${stuckCountdownCounter + 1}`);
+        
+        // If stuck for more than 5 seconds, force aggressive refresh
+        if (stuckCountdownCounter >= 5) {
+          console.log('Countdown stuck detected, forcing page reload...');
+          // Reset counter
+          setStuckCountdownCounter(0);
+          // Force reload the page as last resort
+          window.location.reload();
+        }
+      } else {
+        // Reset counter if countdown is not stuck
+        setStuckCountdownCounter(0);
+      }
+      
       // Refresh latest draw more frequently during transitions
-      if (gameState && (gameState.countdown_seconds <= 5 || gameState.status === 'drawing')) {
+      if (gameState && (gameState.countdown_seconds <= 5 || gameState.countdown_seconds === 0 || gameState.status === 'drawing')) {
         fetchLatestDraw();
         
-        // Prepare for draw history update
-        if (gameState.countdown_seconds <= 1) {
-          console.log('Low countdown, preparing for new period...');
+        // Force refresh when countdown is at 0
+        if (gameState.countdown_seconds === 0) {
+          console.log('Countdown at 0, forcing refresh...');
+          // Immediate refresh
+          fetchGameState();
+          fetchLatestDraw();
+          
+          // Delayed refresh to catch any transitions
           setTimeout(() => {
-            fetchDrawHistory();
+            fetchGameState();
             fetchLatestDraw();
-          }, 3000);
+            fetchDrawHistory();
+          }, 2000);
+          
+          // Another refresh to ensure we catch the new period
+          setTimeout(() => {
+            fetchGameState();
+            fetchLatestDraw();
+          }, 5000);
         }
       }
     }, refreshInterval);
 
     return () => clearInterval(interval);
-  }, [gameState?.countdown_seconds, gameState?.status]);
+  }, [gameState?.countdown_seconds, gameState?.status, stuckCountdownCounter]);
 
   // Handle date change
   const handleDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -153,21 +184,33 @@ export default function Racing10Page() {
   // Handle countdown complete
   const handleCountdownComplete = () => {
     console.log('Countdown completed, refreshing data...');
-    // Immediate refresh for game state
-    fetchGameState();
     
-    // Delayed refresh for draw results
+    // Multiple immediate refreshes to ensure we catch the transition
+    fetchGameState();
+    fetchLatestDraw();
+    
+    // Rapid refreshes to catch the transition
+    const refreshCount = 10;
+    let refreshIndex = 0;
+    
+    const rapidRefresh = setInterval(() => {
+      fetchGameState();
+      fetchLatestDraw();
+      
+      refreshIndex++;
+      if (refreshIndex >= refreshCount) {
+        clearInterval(rapidRefresh);
+        // Final refresh for draw history
+        fetchDrawHistory();
+      }
+    }, 500);
+    
+    // Additional delayed refresh as backup
     setTimeout(() => {
       fetchGameState();
       fetchLatestDraw();
       fetchDrawHistory();
-    }, 2000);
-    
-    // Additional refresh to catch any delays
-    setTimeout(() => {
-      fetchGameState();
-      fetchLatestDraw();
-    }, 4000);
+    }, 10000);
   };
 
   if (loading) {

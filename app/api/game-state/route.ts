@@ -89,7 +89,14 @@ export async function GET(request: NextRequest) {
 
     // Transform the response to match our format
     const now = new Date();
-    const countdownSeconds = data.gameData.countdownSeconds || 0;
+    let countdownSeconds = data.gameData.countdownSeconds || 0;
+    
+    // If countdown is stuck at 0 and status is betting, force a refresh
+    if (countdownSeconds === 0 && data.gameData.status === 'betting') {
+      console.log('Countdown stuck at 0, forcing transition...');
+      // Set a minimal countdown to trigger refresh
+      countdownSeconds = 1;
+    }
     
     // Always use current time for consistency
     const serverTime = now.toISOString();
@@ -97,7 +104,7 @@ export async function GET(request: NextRequest) {
     // Always calculate next draw time based on current time
     const nextDrawTime = new Date(now.getTime() + (countdownSeconds * 1000)).toISOString();
     
-    console.log(`Game state: period=${data.gameData.currentPeriod}, countdown=${countdownSeconds}, nextDraw=${nextDrawTime}`);
+    console.log(`Game state: period=${data.gameData.currentPeriod}, countdown=${countdownSeconds}, status=${data.gameData.status}, nextDraw=${nextDrawTime}`);
     
     return NextResponse.json({
       success: true,

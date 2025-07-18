@@ -54,10 +54,13 @@ export default function SynchronizedCountdown({
         hasTriggeredRef.current = true;
         console.log(`[倒數] 倒數結束，觸發狀態變更 from ${gameState.status}`);
         if (onStatusChange) {
-          // 強制刷新以獲取最新狀態
-          setTimeout(() => {
-            onStatusChange(gameState.status === 'betting' ? 'drawing' : 'betting');
-          }, 100);
+          // 立即觸發狀態變更
+          onStatusChange(gameState.status === 'betting' ? 'drawing' : 'betting');
+          
+          // 多次觸發以確保刷新
+          setTimeout(() => onStatusChange(gameState.status === 'betting' ? 'drawing' : 'betting'), 500);
+          setTimeout(() => onStatusChange(gameState.status === 'betting' ? 'drawing' : 'betting'), 1000);
+          setTimeout(() => onStatusChange(gameState.status === 'betting' ? 'drawing' : 'betting'), 2000);
         }
       }
     }, 100);
