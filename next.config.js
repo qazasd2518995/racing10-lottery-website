@@ -20,6 +20,33 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  // Add headers to prevent caching issues
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=3600, immutable',
+          },
+        ],
+      },
+      {
+        source: '/_next/static/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+    ];
+  },
+  // Experimental features for better chunk loading
+  experimental: {
+    optimizeCss: true,
+  },
 }
 
 module.exports = nextConfig 
