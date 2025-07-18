@@ -41,13 +41,8 @@ export default function SynchronizedCountdown({
       hasTriggeredRef.current = true;
       console.log(`[倒數] 倒數結束，觸發狀態變更 from ${gameState.status}`);
       if (onStatusChange) {
-        // 立即觸發狀態變更
+        // 只觸發一次狀態變更
         onStatusChange(gameState.status === 'betting' ? 'drawing' : 'betting');
-        
-        // 多次觸發以確保刷新
-        setTimeout(() => onStatusChange(gameState.status === 'betting' ? 'drawing' : 'betting'), 500);
-        setTimeout(() => onStatusChange(gameState.status === 'betting' ? 'drawing' : 'betting'), 1000);
-        setTimeout(() => onStatusChange(gameState.status === 'betting' ? 'drawing' : 'betting'), 2000);
       }
     }
   }, [gameState]); // 依賴整個 gameState 物件

@@ -77,7 +77,9 @@ export default function Racing10Page() {
       const data = await response.json();
       
       if (data.success) {
-        setLatestDraw(data.data);
+        if (data.data) {
+          setLatestDraw(data.data);
+        }
       } else {
         console.error('Failed to fetch latest draw:', data.message);
       }
@@ -201,32 +203,21 @@ export default function Racing10Page() {
   const handleCountdownComplete = () => {
     console.log('Countdown completed, refreshing data...');
     
-    // Multiple immediate refreshes to ensure we catch the transition
+    // Single immediate refresh
     fetchGameState();
-    fetchLatestDraw();
     
-    // Rapid refreshes to catch the transition
-    const refreshCount = 10;
-    let refreshIndex = 0;
-    
-    const rapidRefresh = setInterval(() => {
-      fetchGameState();
-      fetchLatestDraw();
-      
-      refreshIndex++;
-      if (refreshIndex >= refreshCount) {
-        clearInterval(rapidRefresh);
-        // Final refresh for draw history
-        fetchDrawHistory();
-      }
-    }, 500);
-    
-    // Additional delayed refresh as backup
+    // Delayed refresh to catch the transition
     setTimeout(() => {
       fetchGameState();
       fetchLatestDraw();
       fetchDrawHistory();
-    }, 10000);
+    }, 2000);
+    
+    // One more refresh after 5 seconds
+    setTimeout(() => {
+      fetchGameState();
+      fetchLatestDraw();
+    }, 5000);
   };
 
   if (loading) {
