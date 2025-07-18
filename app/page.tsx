@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import SynchronizedCountdown from '@/components/synchronized-countdown';
+import SynchronizedCountdown from '@/components/synchronized-countdown-v2';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
@@ -135,12 +135,21 @@ export default function Racing10Page() {
 
   // Handle countdown complete
   const handleCountdownComplete = () => {
-    // Refresh data when countdown completes
-    setTimeout(() => {
+    // Immediately refresh data when countdown completes
+    fetchGameState();
+    fetchLatestDraw();
+    
+    // Keep refreshing until we get the new period
+    const checkInterval = setInterval(() => {
       fetchGameState();
       fetchLatestDraw();
+    }, 1000);
+    
+    // Stop checking after 5 seconds
+    setTimeout(() => {
+      clearInterval(checkInterval);
       fetchDrawHistory();
-    }, 2000);
+    }, 5000);
   };
 
   if (loading) {
