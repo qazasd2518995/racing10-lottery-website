@@ -88,15 +88,26 @@ export async function GET(request: NextRequest) {
     }
 
     // Transform the response to match our format
+    const now = new Date();
+    const countdownSeconds = data.gameData.countdownSeconds || 0;
+    
+    // Always use current time for consistency
+    const serverTime = now.toISOString();
+    
+    // Always calculate next draw time based on current time
+    const nextDrawTime = new Date(now.getTime() + (countdownSeconds * 1000)).toISOString();
+    
+    console.log(`Game state: period=${data.gameData.currentPeriod}, countdown=${countdownSeconds}, nextDraw=${nextDrawTime}`);
+    
     return NextResponse.json({
       success: true,
       data: {
         current_period: data.gameData.currentPeriod,
-        countdown_seconds: data.gameData.countdownSeconds,
+        countdown_seconds: countdownSeconds,
         last_result: data.gameData.lastResult,
         status: data.gameData.status,
-        server_time: data.gameData.serverTime || new Date().toISOString(),
-        next_draw_time: data.gameData.nextDrawTime || new Date(Date.now() + (data.gameData.countdownSeconds * 1000)).toISOString(),
+        server_time: serverTime,
+        next_draw_time: nextDrawTime,
         current_block_height: null,
         current_block_hash: null
       }

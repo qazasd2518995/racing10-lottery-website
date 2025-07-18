@@ -19,23 +19,20 @@ export default function SynchronizedCountdown({
 }: SynchronizedCountdownProps) {
   const [displayTime, setDisplayTime] = useState('00:00');
   const [displaySeconds, setDisplaySeconds] = useState(0);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const hasTriggeredRef = useRef(false);
   const lastPeriodRef = useRef<string>('');
 
   useEffect(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-    }
-
     if (!gameState) return;
 
-    // 檢測期號變化
+    // 檢測期號變化，重置觸發標記
     if (gameState.current_period !== lastPeriodRef.current) {
       lastPeriodRef.current = gameState.current_period;
+      hasTriggeredRef.current = false;
       console.log(`[倒數] 新期號: ${gameState.current_period}`);
     }
 
-    const updateCountdown = () => {
+    const interval = setInterval(() => {
       if (!gameState.next_draw_time) {
         // 沒有 next_draw_time，使用簡單倒數
         setDisplaySeconds(gameState.countdown_seconds);
@@ -46,33 +43,27 @@ export default function SynchronizedCountdown({
       // 計算實際剩餘時間
       const now = Date.now();
       const nextDraw = new Date(gameState.next_draw_time).getTime();
-      
-      // 直接計算剩餘時間
       const remainingMs = nextDraw - now;
       const remainingSeconds = Math.max(0, Math.floor(remainingMs / 1000));
       
       setDisplaySeconds(remainingSeconds);
       setDisplayTime(formatTime(remainingSeconds));
 
-      // 觸發狀態變更
-      if (remainingSeconds === 0 && onStatusChange) {
-        console.log('[倒數] 倒數結束，觸發狀態變更');
-        onStatusChange(gameState.status === 'betting' ? 'drawing' : 'betting');
+      // 只觸發一次狀態變更
+      if (remainingSeconds <= 0 && !hasTriggeredRef.current) {
+        hasTriggeredRef.current = true;
+        console.log(`[倒數] 倒數結束，觸發狀態變更 from ${gameState.status}`);
+        if (onStatusChange) {
+          // 強制刷新以獲取最新狀態
+          setTimeout(() => {
+            onStatusChange(gameState.status === 'betting' ? 'drawing' : 'betting');
+          }, 100);
+        }
       }
-    };
+    }, 100);
 
-    // 立即更新一次
-    updateCountdown();
-
-    // 每100ms更新一次以保持流暢
-    intervalRef.current = setInterval(updateCountdown, 100);
-
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, [gameState, onStatusChange]);
+    return () => clearInterval(interval);
+  }, [gameState?.current_period]); // 只依賴期號變化
 
   const formatTime = (totalSeconds: number): string => {
     const mins = Math.floor(totalSeconds / 60);
@@ -96,7 +87,10 @@ export default function SynchronizedCountdown({
   // Get status text based on game state
   const getStatusText = () => {
     if (isDrawing) {
-      return 'Drawing in progress';
+      if (displaySeconds <= 0) {
+        return 'Drawing completed';
+      }
+      return `Drawing in progress (${displaySeconds}s)`;
     }
     if (displaySeconds <= 0) {
       return 'Betting closed';

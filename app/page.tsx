@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import SynchronizedCountdown from '@/components/synchronized-countdown-v2';
+import DebugCountdown from '@/components/debug-countdown';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
@@ -116,15 +117,31 @@ export default function Racing10Page() {
     loadData();
   }, []);
 
-  // Auto-refresh game state every 5 seconds
+  // Auto-refresh game state with adaptive timing
   useEffect(() => {
+    // Use faster refresh rate when countdown is low
+    const refreshInterval = gameState && gameState.countdown_seconds <= 5 ? 1000 : 3000;
+    
     const interval = setInterval(() => {
       fetchGameState();
-      fetchLatestDraw();
-    }, 5000);
+      
+      // Refresh latest draw more frequently during transitions
+      if (gameState && (gameState.countdown_seconds <= 5 || gameState.status === 'drawing')) {
+        fetchLatestDraw();
+        
+        // Prepare for draw history update
+        if (gameState.countdown_seconds <= 1) {
+          console.log('Low countdown, preparing for new period...');
+          setTimeout(() => {
+            fetchDrawHistory();
+            fetchLatestDraw();
+          }, 3000);
+        }
+      }
+    }, refreshInterval);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [gameState?.countdown_seconds, gameState?.status]);
 
   // Handle date change
   const handleDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -135,21 +152,22 @@ export default function Racing10Page() {
 
   // Handle countdown complete
   const handleCountdownComplete = () => {
-    // Immediately refresh data when countdown completes
+    console.log('Countdown completed, refreshing data...');
+    // Immediate refresh for game state
     fetchGameState();
-    fetchLatestDraw();
     
-    // Keep refreshing until we get the new period
-    const checkInterval = setInterval(() => {
+    // Delayed refresh for draw results
+    setTimeout(() => {
       fetchGameState();
       fetchLatestDraw();
-    }, 1000);
-    
-    // Stop checking after 5 seconds
-    setTimeout(() => {
-      clearInterval(checkInterval);
       fetchDrawHistory();
-    }, 5000);
+    }, 2000);
+    
+    // Additional refresh to catch any delays
+    setTimeout(() => {
+      fetchGameState();
+      fetchLatestDraw();
+    }, 4000);
   };
 
   if (loading) {
@@ -212,7 +230,9 @@ export default function Racing10Page() {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-lg font-semibold">
-                WINNING NUMBERS: {latestDraw?.issue || 'Loading...'}, {latestDraw?.date || ''}
+                WINNING NUMBERS: {gameState?.status === 'drawing' && gameState?.countdown_seconds > 0 
+                  ? `Drawing Period ${gameState.current_period}...` 
+                  : `${latestDraw?.issue || 'Loading...'}, ${latestDraw?.date || ''}`}
               </h2>
               {latestDraw?.block_height && (
                 <div className="mt-2 text-sm opacity-90">
@@ -233,10 +253,15 @@ export default function Racing10Page() {
             <div className="text-right">
               <div className="text-sm mb-1">Next Lottery Draw :</div>
               {gameState && (
-                <SynchronizedCountdown 
-                  gameState={gameState}
-                  onStatusChange={() => handleCountdownComplete()}
-                />
+                <>
+                  <SynchronizedCountdown 
+                    gameState={gameState}
+                    onStatusChange={() => handleCountdownComplete()}
+                  />
+                  <div className="mt-4">
+                    <DebugCountdown gameState={gameState} />
+                  </div>
+                </>
               )}
               {gameState?.current_block_height && (
                 <div className="text-xs mt-2 opacity-75">
@@ -248,11 +273,21 @@ export default function Racing10Page() {
 
           {/* Winning Numbers Display */}
           <div className="flex justify-center space-x-4">
-            {(latestDraw?.numbers || gameState?.last_result || [1,2,3,4,5,6,7,8,9,10]).map((number, index) => (
-              <div key={`winning-${index}`} className="bg-white text-blue-600 w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg number-ball">
-                {number.toString().padStart(2, '0')}
-              </div>
-            ))}
+            {gameState?.status === 'drawing' && gameState?.countdown_seconds > 0 ? (
+              // Show loading animation during drawing
+              Array.from({ length: 10 }, (_, i) => (
+                <div key={`drawing-${i}`} className="bg-white text-blue-600 w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg number-ball animate-pulse">
+                  ??
+                </div>
+              ))
+            ) : (
+              // Show actual numbers
+              (latestDraw?.numbers || gameState?.last_result || [1,2,3,4,5,6,7,8,9,10]).map((number, index) => (
+                <div key={`winning-${index}`} className="bg-white text-blue-600 w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg number-ball">
+                  {number.toString().padStart(2, '0')}
+                </div>
+              ))
+            )}
           </div>
         </div>
       </section>
