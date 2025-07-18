@@ -32,41 +32,25 @@ export default function SynchronizedCountdown({
       console.log(`[倒數] 新期號: ${gameState.current_period}`);
     }
 
-    const interval = setInterval(() => {
-      if (!gameState.next_draw_time) {
-        // 沒有 next_draw_time，使用簡單倒數
-        setDisplaySeconds(gameState.countdown_seconds);
-        setDisplayTime(formatTime(gameState.countdown_seconds));
-        return;
+    // 直接使用 countdown_seconds，不計算剩餘時間
+    setDisplaySeconds(gameState.countdown_seconds);
+    setDisplayTime(formatTime(gameState.countdown_seconds));
+
+    // 當倒數為0且狀態改變時觸發
+    if (gameState.countdown_seconds <= 0 && !hasTriggeredRef.current) {
+      hasTriggeredRef.current = true;
+      console.log(`[倒數] 倒數結束，觸發狀態變更 from ${gameState.status}`);
+      if (onStatusChange) {
+        // 立即觸發狀態變更
+        onStatusChange(gameState.status === 'betting' ? 'drawing' : 'betting');
+        
+        // 多次觸發以確保刷新
+        setTimeout(() => onStatusChange(gameState.status === 'betting' ? 'drawing' : 'betting'), 500);
+        setTimeout(() => onStatusChange(gameState.status === 'betting' ? 'drawing' : 'betting'), 1000);
+        setTimeout(() => onStatusChange(gameState.status === 'betting' ? 'drawing' : 'betting'), 2000);
       }
-
-      // 計算實際剩餘時間
-      const now = Date.now();
-      const nextDraw = new Date(gameState.next_draw_time).getTime();
-      const remainingMs = nextDraw - now;
-      const remainingSeconds = Math.max(0, Math.floor(remainingMs / 1000));
-      
-      setDisplaySeconds(remainingSeconds);
-      setDisplayTime(formatTime(remainingSeconds));
-
-      // 只觸發一次狀態變更
-      if (remainingSeconds <= 0 && !hasTriggeredRef.current) {
-        hasTriggeredRef.current = true;
-        console.log(`[倒數] 倒數結束，觸發狀態變更 from ${gameState.status}`);
-        if (onStatusChange) {
-          // 立即觸發狀態變更
-          onStatusChange(gameState.status === 'betting' ? 'drawing' : 'betting');
-          
-          // 多次觸發以確保刷新
-          setTimeout(() => onStatusChange(gameState.status === 'betting' ? 'drawing' : 'betting'), 500);
-          setTimeout(() => onStatusChange(gameState.status === 'betting' ? 'drawing' : 'betting'), 1000);
-          setTimeout(() => onStatusChange(gameState.status === 'betting' ? 'drawing' : 'betting'), 2000);
-        }
-      }
-    }, 100);
-
-    return () => clearInterval(interval);
-  }, [gameState?.current_period]); // 只依賴期號變化
+    }
+  }, [gameState]); // 依賴整個 gameState 物件
 
   const formatTime = (totalSeconds: number): string => {
     const mins = Math.floor(totalSeconds / 60);

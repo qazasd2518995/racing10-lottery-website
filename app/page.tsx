@@ -46,10 +46,16 @@ export default function Racing10Page() {
   // Fetch game state
   const fetchGameState = async () => {
     try {
-      const response = await fetch('/api/game-state');
+      const response = await fetch('/api/game-state', {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache',
+        }
+      });
       const data = await response.json();
       
       if (data.success) {
+        console.log(`Updating gameState: period=${data.data.current_period}, countdown=${data.data.countdown_seconds}, status=${data.data.status}`);
         setGameState(data.data);
       } else {
         console.error('Failed to fetch game state:', data.message);
@@ -62,7 +68,12 @@ export default function Racing10Page() {
   // Fetch latest draw
   const fetchLatestDraw = async () => {
     try {
-      const response = await fetch('/api/latest-draw');
+      const response = await fetch('/api/latest-draw', {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache',
+        }
+      });
       const data = await response.json();
       
       if (data.success) {
@@ -81,7 +92,12 @@ export default function Racing10Page() {
       // If no date is provided, use today's date (selectedDate)
       const dateToFetch = date || selectedDate;
       const url = `/api/draw-history?date=${dateToFetch}`;
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache',
+        }
+      });
       const data = await response.json();
       
       if (data.success) {
