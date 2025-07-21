@@ -33,7 +33,12 @@ async function fetchFromGameAPI(url: string): Promise<any> {
 
 export async function GET(request: NextRequest) {
   try {
-    console.log('Attempting to fetch game state...');
+    // Reduce logging to save memory
+    const shouldLog = process.env.NODE_ENV === 'development';
+    
+    if (shouldLog) {
+      console.log('Attempting to fetch game state...');
+    }
     
     // Try each API URL in order
     let data = null;
@@ -42,11 +47,15 @@ export async function GET(request: NextRequest) {
     for (const url of GAME_API_URLS) {
       if (!url) continue;
       
-      console.log(`Trying API: ${url}`);
+      if (shouldLog) {
+        console.log(`Trying API: ${url}`);
+      }
       try {
         data = await fetchFromGameAPI(url);
         if (data && data.gameData) {
-          console.log(`Successfully fetched from: ${url}`);
+          if (shouldLog) {
+            console.log(`Successfully fetched from: ${url}`);
+          }
           break;
         }
       } catch (error) {
@@ -104,7 +113,9 @@ export async function GET(request: NextRequest) {
     // Always calculate next draw time based on current time
     const nextDrawTime = new Date(now.getTime() + (countdownSeconds * 1000)).toISOString();
     
-    console.log(`Game state: period=${data.gameData.currentPeriod}, countdown=${countdownSeconds}, status=${data.gameData.status}, nextDraw=${nextDrawTime}`);
+    if (shouldLog) {
+      console.log(`Game state: period=${data.gameData.currentPeriod}, countdown=${countdownSeconds}, status=${data.gameData.status}, nextDraw=${nextDrawTime}`);
+    }
     
     return NextResponse.json({
       success: true,
