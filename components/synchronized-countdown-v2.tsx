@@ -70,17 +70,17 @@ export default function SynchronizedCountdown({
   const getStatusText = () => {
     if (isDrawing) {
       if (displaySeconds <= 0) {
-        return 'Drawing completed';
+        return '开奖完成';
       }
-      return `Drawing in progress (${displaySeconds}s)`;
+      return `开奖中 (${displaySeconds}秒)`;
     }
     if (displaySeconds <= 0) {
-      return 'Betting closed';
+      return '投注已关闭';
     }
     if (displaySeconds <= 10) {
-      return 'Betting closing soon!';
+      return '即将停止投注！';
     }
-    return 'Betting open';
+    return '投注开放中';
   };
 
   return (
