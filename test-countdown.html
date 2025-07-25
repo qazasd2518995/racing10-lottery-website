@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>倒數測試</title>
+    <title>倒数测试</title>
     <style>
         body { 
             font-family: Arial, sans-serif; 
@@ -29,14 +29,14 @@
 </head>
 <body>
     <div class="info">
-        <h2>倒數測試</h2>
-        <p>API 數據：</p>
+        <h2>倒数测试</h2>
+        <p>API 数据：</p>
         <pre id="api-data"></pre>
     </div>
     
     <div class="info">
         <div class="countdown" id="countdown">--:--</div>
-        <div class="status" id="status">載入中...</div>
+        <div class="status" id="status">载入中...</div>
     </div>
 
     <script>
@@ -53,8 +53,8 @@
                     startCountdown(data.data);
                 }
             } catch (error) {
-                console.error('錯誤:', error);
-                document.getElementById('status').textContent = '載入失敗';
+                console.error('错误:', error);
+                document.getElementById('status').textContent = '载入失败';
             }
         }
         
@@ -74,7 +74,7 @@
                     `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
                 
                 document.getElementById('status').textContent = 
-                    `期號: ${gameData.current_period} | 狀態: ${gameData.status} | 剩餘: ${remainingSeconds}秒`;
+                    `期号: ${gameData.current_period} | 状态: ${gameData.status} | 剩余: ${remainingSeconds}秒`;
                 
                 if (remainingSeconds === 0) {
                     setTimeout(fetchData, 1000);
@@ -85,10 +85,10 @@
             interval = setInterval(updateDisplay, 100);
         }
         
-        // 初始載入
+        // 初始载入
         fetchData();
         
-        // 每5秒刷新數據
+        // 每5秒刷新数据
         setInterval(fetchData, 5000);
     </script>
 </body>

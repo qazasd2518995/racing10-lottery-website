@@ -106,21 +106,37 @@ export async function getLatestDrawRecords(limit = 10): Promise<DrawRecord[]> {
   const pool = getPool();
   try {
     const result = await pool.query(`
-      SELECT period, result, draw_time, created_at, block_height, block_hash
-      FROM draw_records 
+      SELECT period, result, draw_time, created_at, block_height, block_hash,
+             position_1, position_2, position_3, position_4, position_5,
+             position_6, position_7, position_8, position_9, position_10
+      FROM result_history 
       ORDER BY created_at DESC 
       LIMIT $1
     `, [limit]);
     
-    return result.rows.map(row => ({
-      id: 0,
-      period: row.period,
-      result: Array.isArray(row.result) ? row.result : JSON.parse(row.result || '[]'),
-      draw_time: row.draw_time,
-      created_at: row.created_at,
-      block_height: row.block_height,
-      block_hash: row.block_hash
-    }));
+    return result.rows.map(row => {
+      // 如果有 position_* 栏位，使用它们构建 result 数组
+      let resultArray;
+      if (row.position_1 !== undefined && row.position_1 !== null) {
+        resultArray = [
+          row.position_1, row.position_2, row.position_3, row.position_4, row.position_5,
+          row.position_6, row.position_7, row.position_8, row.position_9, row.position_10
+        ];
+      } else {
+        // 否则使用 result 栏位
+        resultArray = Array.isArray(row.result) ? row.result : JSON.parse(row.result || '[]');
+      }
+      
+      return {
+        id: 0,
+        period: row.period,
+        result: resultArray,
+        draw_time: row.draw_time,
+        created_at: row.created_at,
+        block_height: row.block_height,
+        block_hash: row.block_hash
+      };
+    });
   } catch (error) {
     console.error('Error fetching draw records:', error);
     return [];
@@ -138,21 +154,37 @@ export async function getDrawRecordsByDate(date: string): Promise<DrawRecord[]> 
     console.log(`Start: ${startDate.toISOString()}, End: ${endDate.toISOString()}`);
     
     const result = await pool.query(`
-      SELECT period, result, draw_time, created_at, block_height, block_hash
-      FROM draw_records 
+      SELECT period, result, draw_time, created_at, block_height, block_hash,
+             position_1, position_2, position_3, position_4, position_5,
+             position_6, position_7, position_8, position_9, position_10
+      FROM result_history 
       WHERE draw_time >= $1 AND draw_time <= $2
       ORDER BY draw_time DESC
     `, [startDate, endDate]);
     
-    return result.rows.map(row => ({
-      id: 0,
-      period: row.period,
-      result: Array.isArray(row.result) ? row.result : JSON.parse(row.result || '[]'),
-      draw_time: row.draw_time,
-      created_at: row.created_at,
-      block_height: row.block_height,
-      block_hash: row.block_hash
-    }));
+    return result.rows.map(row => {
+      // 如果有 position_* 栏位，使用它们构建 result 数组
+      let resultArray;
+      if (row.position_1 !== undefined && row.position_1 !== null) {
+        resultArray = [
+          row.position_1, row.position_2, row.position_3, row.position_4, row.position_5,
+          row.position_6, row.position_7, row.position_8, row.position_9, row.position_10
+        ];
+      } else {
+        // 否则使用 result 栏位
+        resultArray = Array.isArray(row.result) ? row.result : JSON.parse(row.result || '[]');
+      }
+      
+      return {
+        id: 0,
+        period: row.period,
+        result: resultArray,
+        draw_time: row.draw_time,
+        created_at: row.created_at,
+        block_height: row.block_height,
+        block_hash: row.block_hash
+      };
+    });
   } catch (error) {
     console.error('Error fetching draw records by date:', error);
     return [];
@@ -163,8 +195,10 @@ export async function getDrawRecordByPeriod(period: string): Promise<DrawRecord 
   const pool = getPool();
   try {
     const result = await pool.query(`
-      SELECT period, result, draw_time, created_at, block_height, block_hash
-      FROM draw_records 
+      SELECT period, result, draw_time, created_at, block_height, block_hash,
+             position_1, position_2, position_3, position_4, position_5,
+             position_6, position_7, position_8, position_9, position_10
+      FROM result_history 
       WHERE period = $1
     `, [period]);
     
@@ -173,10 +207,23 @@ export async function getDrawRecordByPeriod(period: string): Promise<DrawRecord 
     }
     
     const row = result.rows[0];
+    
+    // 如果有 position_* 栏位，使用它们构建 result 数组
+    let resultArray;
+    if (row.position_1 !== undefined && row.position_1 !== null) {
+      resultArray = [
+        row.position_1, row.position_2, row.position_3, row.position_4, row.position_5,
+        row.position_6, row.position_7, row.position_8, row.position_9, row.position_10
+      ];
+    } else {
+      // 否则使用 result 栏位
+      resultArray = Array.isArray(row.result) ? row.result : JSON.parse(row.result || '[]');
+    }
+    
     return {
       id: 0,
       period: row.period,
-      result: Array.isArray(row.result) ? row.result : JSON.parse(row.result || '[]'),
+      result: resultArray,
       draw_time: row.draw_time,
       created_at: row.created_at,
       block_height: row.block_height,

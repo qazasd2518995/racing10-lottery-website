@@ -24,7 +24,7 @@ export default function SynchronizedCountdown({
   const lastStatusRef = useRef<string>('');
   const lastPeriodRef = useRef<string>('');
 
-  // 同步服務器時間
+  // 同步服务器时间
   useEffect(() => {
     if (gameState && gameState.server_time) {
       const serverTimestamp = new Date(gameState.server_time).getTime();
@@ -32,11 +32,11 @@ export default function SynchronizedCountdown({
       const offset = serverTimestamp - localTimestamp;
       setServerTimeOffset(offset);
       
-      console.log('[倒數同步] 時間偏移:', offset, 'ms');
+      console.log('[倒数同步] 时间偏移:', offset, 'ms');
     }
   }, [gameState?.server_time]);
 
-  // 當期號變化時，重置本地倒數
+  // 当期号变化时，重置本地倒数
   useEffect(() => {
     if (gameState && gameState.current_period !== lastPeriodRef.current) {
       lastPeriodRef.current = gameState.current_period;
@@ -44,11 +44,11 @@ export default function SynchronizedCountdown({
     }
   }, [gameState?.current_period, gameState?.countdown_seconds]);
 
-  // 計算倒數
+  // 计算倒数
   const calculateCountdown = () => {
     if (!gameState) return 0;
     
-    // 如果有 next_draw_time 和 server_time，使用精確計算
+    // 如果有 next_draw_time 和 server_time，使用精确计算
     if (gameState.next_draw_time && gameState.server_time) {
       const correctedNow = Date.now() + serverTimeOffset;
       const nextDrawTimestamp = new Date(gameState.next_draw_time).getTime();
@@ -56,11 +56,11 @@ export default function SynchronizedCountdown({
       return Math.max(0, Math.floor(remainingMs / 1000));
     }
     
-    // 否則直接使用 countdown_seconds
+    // 否则直接使用 countdown_seconds
     return Math.max(0, gameState.countdown_seconds || 0);
   };
 
-  // 啟動倒數計時器
+  // 启动倒数计时器
   useEffect(() => {
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
@@ -68,7 +68,7 @@ export default function SynchronizedCountdown({
 
     if (!gameState) return;
 
-    // 初始設置倒數
+    // 初始设置倒数
     if (gameState.next_draw_time && gameState.server_time) {
       setCountdown(calculateCountdown());
     } else {
@@ -77,7 +77,7 @@ export default function SynchronizedCountdown({
 
     // 每秒更新一次
     intervalRef.current = setInterval(() => {
-      // 如果有精確的服務器時間，使用計算方式
+      // 如果有精确的服务器时间，使用计算方式
       if (gameState.next_draw_time && gameState.server_time) {
         const seconds = calculateCountdown();
         setCountdown(seconds);
@@ -86,12 +86,12 @@ export default function SynchronizedCountdown({
           onStatusChange('drawing');
         }
       } else {
-        // 否則使用本地倒數
+        // 否则使用本地倒数
         setLocalCountdown(prev => {
           const newValue = Math.max(0, prev - 1);
           setCountdown(newValue);
           
-          // 當倒數到 0 時，觸發狀態變更
+          // 当倒数到 0 时，触发状态变更
           if (newValue === 0 && gameState.status === 'betting' && onStatusChange) {
             onStatusChange('drawing');
           }
@@ -106,7 +106,7 @@ export default function SynchronizedCountdown({
         clearInterval(intervalRef.current);
       }
     };
-  }, [gameState, serverTimeOffset]); // 移除 localCountdown 依賴以避免重複觸發
+  }, [gameState, serverTimeOffset]); // 移除 localCountdown 依赖以避免重复触发
 
   const formatTime = (totalSeconds: number): string => {
     const mins = Math.floor(totalSeconds / 60);

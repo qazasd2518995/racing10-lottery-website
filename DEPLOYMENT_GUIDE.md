@@ -1,10 +1,10 @@
-# 開獎網部署指南
+# 开奖网部署指南
 
-## Render 環境變數設置
+## Render 环境变数设置
 
-請在 Render Dashboard 中設置以下環境變數：
+请在 Render Dashboard 中设置以下环境变数：
 
-### 必須設置的變數：
+### 必须设置的变数：
 
 1. **GAME_API_URL**
    ```
@@ -16,21 +16,21 @@
    DATABASE_URL=postgresql://fsracing_user:gKr7pS8Kg48MknKwQirSPuNiRIpvLXhB@dpg-ct5t88lds78s73co2gdg-a.oregon-postgres.render.com/fsracing
    ```
 
-## 設置步驟：
+## 设置步骤：
 
 1. 登入 Render Dashboard
-2. 找到您的開獎網服務 (racing10-lottery)
-3. 點擊 "Environment" 標籤
-4. 點擊 "Add Environment Variable"
-5. 添加上述變數
-6. 儲存後服務會自動重新部署
+2. 找到您的开奖网服务 (racing10-lottery)
+3. 点击 "Environment" 标签
+4. 点击 "Add Environment Variable"
+5. 添加上述变数
+6. 储存后服务会自动重新部署
 
-## 驗證部署：
+## 验证部署：
 
-部署完成後，訪問以下 URL 確認 API 正常運作：
+部署完成后，访问以下 URL 确认 API 正常运作：
 - https://racing10-lottery.onrender.com/api/game-state
 
-應該看到類似以下的響應：
+应该看到类似以下的响应：
 ```json
 {
   "success": true,
@@ -47,7 +47,7 @@
 
 ## 故障排除：
 
-如果仍然無法同步：
-1. 檢查主遊戲是否正常運行：https://bet-game-vcje.onrender.com
-2. 確認環境變數已正確設置
-3. 查看 Render 日誌中的錯誤訊息
+如果仍然无法同步：
+1. 检查主游戏是否正常运行：https://bet-game-vcje.onrender.com
+2. 确认环境变数已正确设置
+3. 查看 Render 日志中的错误讯息

@@ -25,27 +25,27 @@ export default function SynchronizedCountdown({
   useEffect(() => {
     if (!gameState) return;
 
-    // 檢測期號變化，重置觸發標記
+    // 检测期号变化，重置触发标记
     if (gameState.current_period !== lastPeriodRef.current) {
       lastPeriodRef.current = gameState.current_period;
       hasTriggeredRef.current = false;
-      console.log(`[倒數] 新期號: ${gameState.current_period}`);
+      console.log(`[倒数] 新期号: ${gameState.current_period}`);
     }
 
-    // 直接使用 countdown_seconds，不計算剩餘時間
+    // 直接使用 countdown_seconds，不计算剩余时间
     setDisplaySeconds(gameState.countdown_seconds);
     setDisplayTime(formatTime(gameState.countdown_seconds));
 
-    // 當倒數為0且狀態改變時觸發
+    // 当倒数为0且状态改变时触发
     if (gameState.countdown_seconds <= 0 && !hasTriggeredRef.current) {
       hasTriggeredRef.current = true;
-      console.log(`[倒數] 倒數結束，觸發狀態變更 from ${gameState.status}`);
+      console.log(`[倒数] 倒数结束，触发状态变更 from ${gameState.status}`);
       if (onStatusChange) {
-        // 只觸發一次狀態變更
+        // 只触发一次状态变更
         onStatusChange(gameState.status === 'betting' ? 'drawing' : 'betting');
       }
     }
-  }, [gameState]); // 依賴整個 gameState 物件
+  }, [gameState]); // 依赖整个 gameState 物件
 
   const formatTime = (totalSeconds: number): string => {
     const mins = Math.floor(totalSeconds / 60);
